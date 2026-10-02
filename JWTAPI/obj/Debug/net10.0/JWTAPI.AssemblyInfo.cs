@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("JWTAPI")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+45b936cbd1b248fd0aeebe03f1e20e59c39465bc")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8315d3f47b4d60eaa2a848a2d6bdc4e5d6d06e18")]
 [assembly: System.Reflection.AssemblyProductAttribute("JWTAPI")]
 [assembly: System.Reflection.AssemblyTitleAttribute("JWTAPI")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
