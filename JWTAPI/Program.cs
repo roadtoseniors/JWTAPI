@@ -50,13 +50,13 @@ app.MapGet("/api/getorderstatus/{statusId}", (MyDbContext context,int statusId) 
     return Results.Ok(context.Orders.Where(o => o.Status.Equals(statusId)).ToList());
 });
 
-app.MapGet("/api/getusrorders/{userId}", (MyDbContext context, int userId) =>
+app.MapGet("/api/getuserorders/{userId}", (MyDbContext context, int userId) =>
 {
     return Results.Ok(context.Orders.Where(o => o.Id.Equals(userId)).ToList());
 
 });
 
-app.MapPatch("/api/patchorderstus/{orderId}&{statusId}", async (MyDbContext context, int orderId, int statusId) =>
+app.MapPatch("/api/patchorderstatus/{orderId}&{statusId}", async (MyDbContext context, int orderId, int statusId) =>
 {
     var order = context.Orders.FirstOrDefault(o => o.Id.Equals(orderId));
     if (order == null)
