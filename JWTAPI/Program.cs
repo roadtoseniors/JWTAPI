@@ -56,6 +56,50 @@ app.MapGet("/api/getusrorders/{userId}", (MyDbContext context, int userId) =>
 
 });
 
+app.MapPatch("/api/patchorderstus/{orderId}&{statusId}", async (MyDbContext context, int orderId, int statusId) =>
+{
+    var order = context.Orders.FirstOrDefault(o => o.Id.Equals(orderId));
+    if (order == null)
+    {
+        return Results.NotFound();
+    }
+    
+    order.Status = statusId;
+    await context.SaveChangesAsync();
+    return Results.Ok(order);
+    
+});
 
+app.MapPatch("/api/patchsizeclothes/{clotheId}&{sizeId}&{quantity}", async (MyDbContext context, int clotheId, int sizeId, int quantity) =>
+    {
+        var clotheSize = context.ClothesSizes.FirstOrDefault(x => x.ClothesId == clotheId && x.SizeId == sizeId);
+
+        if (clotheSize == null)
+        {
+            return Results.NotFound();
+        }
+        clotheSize.Size.Count =  quantity;
+        
+        await context.SaveChangesAsync();
+
+        return Results.Ok(clotheSize);
+    });
+app.MapPatch("/api/patchclothesavalible/{clotheId}&{statusId}", async (MyDbContext context, int clotheId, int statusId) =>
+{
+    var clothe = context.Clothes.FirstOrDefault(o => o.Id.Equals(clotheId));
+    if (clothe == null)
+    {
+        return Results.NotFound();
+    }
+
+    if (statusId == 0)
+    {
+        clothe.IsAvailable = false;
+    }
+    clothe.IsAvailable = true;
+    await context.SaveChangesAsync();
+    return Results.Ok(clothe);
+    
+});
 
 app.Run();
