@@ -34,22 +34,12 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 {
     options.SerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
 });
-builder.Services.AddAuthorization();
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
-{
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuer = true,
-        ValidIssuer = AuthOption.ISSUER,
-        ValidateAudience = true,
-        ValidAudience = AuthOption.AUDIENCE,
-        ValidateLifetime = true,
-        IssuerSigningKey = AuthOption.GetSymmetricSecurityKey(),
-        ValidateIssuerSigningKey = true,
-    };
-});
+
 var app = builder.Build();
 
+app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+app.UseAuthentication();
+app.UseAuthorization();
 // Configure the HTTP request pipeline.
 
 app.MapGet("/api/getclothes", (MyDbContext context) =>
@@ -58,25 +48,26 @@ app.MapGet("/api/getclothes", (MyDbContext context) =>
     return Results.Ok( context.Clothes.ToList());
     
     
-});
+}).AllowAnonymous();
+
 app.MapGet("/api/getclothes/{name}", (MyDbContext context, string name) =>
 {
    
     return Results.Ok( context.Clothes.Where(c => c.Name.ToLower().Contains(name.ToLower())).ToList());
     
     
-});
+}).AllowAnonymous();
 
 app.MapGet("/api/getorderstatus/{statusId}", (MyDbContext context,int statusId) =>
 {
     return Results.Ok(context.Orders.Where(o => o.Status.Equals(statusId)).ToList());
-});
+}).RequireAuthorization();
 
 app.MapGet("/api/getuserorders/{userId}", (MyDbContext context, int userId) =>
 {
     return Results.Ok(context.Orders.Where(o => o.Id.Equals(userId)).ToList());
 
-});
+}).RequireAuthorization();
 
 app.MapPatch("/api/patchorderstatus/{orderId}&{statusId}", async (MyDbContext context, int orderId, int statusId) =>
 {
@@ -90,7 +81,7 @@ app.MapPatch("/api/patchorderstatus/{orderId}&{statusId}", async (MyDbContext co
     await context.SaveChangesAsync();
     return Results.Ok(order);
     
-});
+}).RequireAuthorization(policy => policy.RequireAuthenticatedUser().RequireRole("1"));
 
 app.MapPatch("/api/patchsizeclothes/{clotheId}&{sizeId}&{quantity}", async (MyDbContext context, int clotheId, int sizeId, int quantity) =>
     {
@@ -105,7 +96,8 @@ app.MapPatch("/api/patchsizeclothes/{clotheId}&{sizeId}&{quantity}", async (MyDb
         await context.SaveChangesAsync();
 
         return Results.Ok(clotheSize);
-    });
+    }).RequireAuthorization(policy => policy.RequireAuthenticatedUser().RequireRole("1"));
+
 app.MapPatch("/api/patchclothesavalible/{clotheId}&{statusId}", async (MyDbContext context, int clotheId, int statusId) =>
 {
     var clothe = context.Clothes.FirstOrDefault(o => o.Id.Equals(clotheId));
@@ -113,9 +105,7 @@ app.MapPatch("/api/patchclothesavalible/{clotheId}&{statusId}", async (MyDbConte
     {
         return Results.NotFound();
     }
-app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
-app.UseAuthentication();
-app.UseAuthorization();
+
 
     if (statusId == 0)
     {
@@ -125,7 +115,8 @@ app.UseAuthorization();
     await context.SaveChangesAsync();
     return Results.Ok(clothe);
     
-});
+}).RequireAuthorization(policy => policy.RequireAuthenticatedUser().RequireRole("1"));
+
 app.MapPost("/auth/register", async (User user, MyDbContext cnt) =>
 {
     var exists = await cnt.Users
