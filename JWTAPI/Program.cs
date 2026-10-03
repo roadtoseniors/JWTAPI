@@ -1,4 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
+using System.Text.Json.Serialization;
+
 using System.Security.Claims;
 using JWTAPI;
 using JWTAPI.Context;
@@ -28,11 +30,92 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
     };
 });
 
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+});
+
 var app = builder.Build();
 
 app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 app.UseAuthentication();
 app.UseAuthorization();
+// Configure the HTTP request pipeline.
+
+app.MapGet("/api/getclothes", (MyDbContext context) =>
+{
+   
+    return Results.Ok( context.Clothes.ToList());
+    
+    
+}).AllowAnonymous();
+
+app.MapGet("/api/getclothes/{name}", (MyDbContext context, string name) =>
+{
+   
+    return Results.Ok( context.Clothes.Where(c => c.Name.ToLower().Contains(name.ToLower())).ToList());
+    
+    
+}).AllowAnonymous();
+
+app.MapGet("/api/getorderstatus/{statusId}", (MyDbContext context,int statusId) =>
+{
+    return Results.Ok(context.Orders.Where(o => o.Status.Equals(statusId)).ToList());
+}).RequireAuthorization();
+
+app.MapGet("/api/getuserorders/{userId}", (MyDbContext context, int userId) =>
+{
+    return Results.Ok(context.Orders.Where(o => o.Id.Equals(userId)).ToList());
+
+}).RequireAuthorization();
+
+app.MapPatch("/api/patchorderstatus/{orderId}&{statusId}", async (MyDbContext context, int orderId, int statusId) =>
+{
+    var order = context.Orders.FirstOrDefault(o => o.Id.Equals(orderId));
+    if (order == null)
+    {
+        return Results.NotFound();
+    }
+    
+    order.Status = statusId;
+    await context.SaveChangesAsync();
+    return Results.Ok(order);
+    
+}).RequireAuthorization(policy => policy.RequireAuthenticatedUser().RequireRole("1"));
+
+app.MapPatch("/api/patchsizeclothes/{clotheId}&{sizeId}&{quantity}", async (MyDbContext context, int clotheId, int sizeId, int quantity) =>
+    {
+        var clotheSize = context.ClothesSizes.FirstOrDefault(x => x.ClothesId == clotheId && x.SizeId == sizeId);
+
+        if (clotheSize == null)
+        {
+            return Results.NotFound();
+        }
+        clotheSize.Size.Count =  quantity;
+        
+        await context.SaveChangesAsync();
+
+        return Results.Ok(clotheSize);
+    }).RequireAuthorization(policy => policy.RequireAuthenticatedUser().RequireRole("1"));
+
+app.MapPatch("/api/patchclothesavalible/{clotheId}&{statusId}", async (MyDbContext context, int clotheId, int statusId) =>
+{
+    var clothe = context.Clothes.FirstOrDefault(o => o.Id.Equals(clotheId));
+    if (clothe == null)
+    {
+        return Results.NotFound();
+    }
+
+
+    if (statusId == 0)
+    {
+        clothe.IsAvailable = false;
+    }
+    clothe.IsAvailable = true;
+    await context.SaveChangesAsync();
+    return Results.Ok(clothe);
+    
+}).RequireAuthorization(policy => policy.RequireAuthenticatedUser().RequireRole("1"));
 
 app.MapPost("/auth/register", async (User user, MyDbContext cnt) =>
 {

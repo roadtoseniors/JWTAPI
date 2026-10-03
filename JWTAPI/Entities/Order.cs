@@ -13,6 +13,7 @@ public partial class Order
     public int Status { get; set; }
 
     public int UserId { get; set; }
+
     [JsonIgnore]
     public virtual ICollection<OrderClothe> OrderClothes { get; set; } = new List<OrderClothe>();
 

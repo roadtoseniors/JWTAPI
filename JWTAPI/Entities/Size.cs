@@ -13,6 +13,7 @@ public partial class Size
     public int SizeNumber { get; set; }
 
     public int Count { get; set; }
+
     [JsonIgnore]
     public virtual ICollection<ClothesSize> ClothesSizes { get; set; } = new List<ClothesSize>();
 }

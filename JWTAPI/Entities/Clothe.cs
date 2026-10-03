@@ -19,9 +19,11 @@ public partial class Clothe
     public int TypeClothesId { get; set; }
 
     public bool IsAvailable { get; set; }
-    [JsonIgnore]
+
+    
     public virtual ICollection<ClothesSize> ClothesSizes { get; set; } = new List<ClothesSize>();
-    [JsonIgnore]
+
+    
     public virtual ICollection<OrderClothe> OrderClothes { get; set; } = new List<OrderClothe>();
 
     public virtual TypeClothe TypeClothes { get; set; } = null!;
